@@ -1,0 +1,7 @@
+CREATE DATABASE reservations;
+CREATE DATABASE libraries;
+CREATE DATABASE ratings;
+
+GRANT ALL PRIVILEGES ON DATABASE reservations TO program;
+GRANT ALL PRIVILEGES ON DATABASE libraries   TO program;
+GRANT ALL PRIVILEGES ON DATABASE ratings     TO program;
