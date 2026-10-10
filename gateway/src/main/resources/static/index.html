@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <title>Lab 2 · Biblioteca distribuida</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="Lab2 Biblioteca, inicio">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <span><strong>LAB<span class="brand-two">02</span></strong><small>BIBLIOTECA DISTRIBUIDA</small></span>
+      </a>
+      <nav class="top-nav" aria-label="Navegación principal">
+        <a class="active" href="#arquitectura">Arquitectura</a>
+        <a href="#demo">Prueba el flujo</a>
+        <a href="#codigo">Mapa del código</a>
+      </nav>
+      <div class="top-status"><span class="pulse"></span><span id="overall-status">Conectando…</span></div>
+    </header>
+
+    <main id="inicio">
+      <section class="intro">
+        <div class="intro-copy">
+          <p class="eyebrow"><span class="eyebrow-line"></span> LABORATORIO 02 <span class="eyebrow-dot">/</span> MICROSERVICIOS</p>
+          <h1>Una petición.<br><span>Cuatro servicios.</span></h1>
+          <p class="intro-text">Explora cómo el Gateway coordina el catálogo, los préstamos y el rating. Después, prueba un préstamo real contra la API que está corriendo.</p>
+          <a class="primary-link" href="#demo">Probar la biblioteca <span aria-hidden="true">↘</span></a>
+        </div>
+        <div class="intro-aside">
+          <div class="aside-label">PUNTO DE ENTRADA</div>
+          <div class="gateway-address"><span class="gateway-symbol">↗</span><div><strong>Gateway API</strong><code>localhost:8080</code></div><span class="live-tag">LIVE</span></div>
+          <div class="aside-rule"></div>
+          <p>El navegador llama al Gateway. Los servicios internos solo se comunican a través de él.</p>
+        </div>
+      </section>
+
+      <section class="architecture section-block" id="arquitectura">
+        <div class="section-heading">
+          <div><p class="eyebrow">01 <span class="eyebrow-dot">/</span> VISTA DEL SISTEMA</p><h2>La ruta de una solicitud</h2></div>
+          <span class="section-note">RED INTERNA DOCKER <span class="tiny-dot"></span> REST / HTTP</span>
+        </div>
+        <div class="system-map" role="img" aria-label="El navegador llama al Gateway, que coordina Library, Reservation y Rating; cada servicio usa su propia base lógica en PostgreSQL.">
+          <div class="client-node map-node"><span class="node-kicker">CLIENTE</span><div class="node-title"><span class="client-icon">⌘</span> Navegador</div><span class="node-detail">Interfaz + Postman</span></div>
+          <div class="connector"><span>HTTP</span><i></i></div>
+          <div class="gateway-node map-node"><span class="node-kicker">ÚNICA ENTRADA</span><div class="node-title"><span class="gateway-icon">G</span> Gateway</div><span class="node-detail">:8080 · Orquesta las llamadas</span></div>
+          <div class="fanout"><div class="fanout-line"></div><div class="service-connectors"><span><i></i>REST</span><span><i></i>REST</span><span><i></i>REST</span></div></div>
+          <div class="services-row">
+            <article class="service-card" data-service="library"><div class="service-top"><span class="service-icon icon-library">LIB</span><span class="service-state"><i></i><b>…</b></span></div><h3>Library</h3><p>Catálogo e inventario</p><code>:8060</code><div class="service-db"><span>↳</span> libraries</div></article>
+            <article class="service-card" data-service="reservation"><div class="service-top"><span class="service-icon icon-reservation">RES</span><span class="service-state"><i></i><b>…</b></span></div><h3>Reservation</h3><p>Préstamos y estados</p><code>:8070</code><div class="service-db"><span>↳</span> reservations</div></article>
+            <article class="service-card" data-service="rating"><div class="service-top"><span class="service-icon icon-rating">RAT</span><span class="service-state"><i></i><b>…</b></span></div><h3>Rating</h3><p>Límite de préstamos</p><code>:8050</code><div class="service-db"><span>↳</span> ratings</div></article>
+          </div>
+          <div class="database-rail"><span class="db-icon">▤</span><span>PostgreSQL</span><span class="db-divider"></span><span>Una instancia</span><span class="db-divider"></span><strong>3 bases separadas</strong><span class="db-port">:5432</span></div>
+        </div>
+        <div class="architecture-caption"><span><b>01</b> Gateway recibe y valida</span><span><b>02</b> consulta rating e inventario</span><span><b>03</b> registra el préstamo</span><span><b>04</b> devuelve una respuesta agregada</span></div>
+      </section>
+
+      <section class="demo-section section-block" id="demo">
+        <div class="section-heading">
+          <div><p class="eyebrow">02 <span class="eyebrow-dot">/</span> PRUEBA INTERACTIVA</p><h2>Préstamo en tiempo real</h2></div>
+          <button class="quiet-button" id="refresh-button" type="button"><span aria-hidden="true">↻</span> Actualizar</button>
+        </div>
+        <div class="demo-grid">
+          <div class="catalog-panel">
+            <div class="panel-heading"><div><span class="panel-overline">CATÁLOGO</span><h3>Elige un libro</h3></div><span class="catalog-count" id="catalog-count">— ejemplares</span></div>
+            <div class="catalog-controls"><label for="city-input">Ciudad</label><input id="city-input" value="Москва" autocomplete="off"><label for="library-select">Biblioteca</label><select id="library-select"><option value="">Cargando bibliotecas…</option></select></div>
+            <div id="books-list" class="books-list"><div class="loading-line"><span class="spinner"></span> Consultando Library…</div></div>
+          </div>
+          <aside class="account-panel">
+            <div class="account-top"><span class="panel-overline">TU CUENTA DE PRUEBA</span><span class="account-badge">DEMO</span></div>
+            <label class="field-label" for="username-input">Nombre de usuario</label>
+            <div class="user-field"><span class="user-avatar">U</span><input id="username-input" value="Visual Demo" maxlength="80"><button id="load-user" type="button" aria-label="Cargar usuario">↵</button></div>
+            <div class="rating-summary"><div><span class="panel-overline">LÍMITE DE PRÉSTAMOS</span><div class="rating-number"><strong id="stars-value">—</strong><span>libros</span></div></div><div class="rating-orbit" aria-hidden="true"><span>★</span></div></div>
+            <p class="account-hint">Las estrellas indican cuántos libros puedes tener prestados al mismo tiempo.</p>
+            <div class="account-metric"><span>Activos ahora</span><strong id="active-count">—</strong></div>
+            <div class="account-metric"><span>Disponibles en catálogo</span><strong id="available-count">—</strong></div>
+          </aside>
+        </div>
+        <div class="activity-panel">
+          <div class="activity-heading"><div><span class="panel-overline">RESERVATION SERVICE</span><h3>Mis préstamos</h3></div><span class="active-label"><i></i> DATOS EN VIVO</span></div>
+          <div id="loans-list" class="loans-list"><p class="empty-state">Escribe un usuario para consultar sus préstamos.</p></div>
+        </div>
+        <div class="request-trace"><div class="trace-head"><div><span class="panel-overline">TRAZA DE LA ÚLTIMA ACCIÓN</span><p id="trace-summary">Todavía no hay solicitudes. Elige un libro para empezar.</p></div><span class="trace-code" id="trace-method">GET /api/v1/libraries</span></div><div class="trace-flow" id="trace-flow"><span class="trace-step current">Navegador</span><span class="trace-arrow">→</span><span class="trace-step">Gateway</span><span class="trace-arrow">→</span><span class="trace-step">Microservicio</span><span class="trace-arrow">→</span><span class="trace-step">PostgreSQL</span></div></div>
+      </section>
+
+      <section class="code-section section-block" id="codigo">
+        <div class="section-heading">
+          <div><p class="eyebrow">03 <span class="eyebrow-dot">/</span> CÓDIGO FUENTE</p><h2>Qué archivo hace qué</h2></div>
+          <span class="section-note">JAVA 17 <span class="tiny-dot"></span> SPRING BOOT 3</span>
+        </div>
+        <div class="code-map">
+          <div class="code-row code-highlight"><span class="code-index">01</span><span class="file-type java">JAVA</span><code>gateway/.../controller/GatewayController.java</code><p>Rutas públicas y coordinación de préstamo/devolución.</p><span class="file-port">ENTRYPOINT</span></div>
+          <div class="code-row"><span class="code-index">02</span><span class="file-type java">JAVA</span><code>library/.../controller/LibraryController.java</code><p>Catálogo, paginación y unidades disponibles.</p><span class="file-port">:8060</span></div>
+          <div class="code-row"><span class="code-index">03</span><span class="file-type java">JAVA</span><code>reservation/.../controller/ReservationController.java</code><p>Propiedad, estado y transición de cada préstamo.</p><span class="file-port">:8070</span></div>
+          <div class="code-row"><span class="code-index">04</span><span class="file-type java">JAVA</span><code>rating/.../service/RatingService.java</code><p>Creación del rating y límites de 1 a 100 estrellas.</p><span class="file-port">:8050</span></div>
+          <div class="code-row"><span class="code-index">05</span><span class="file-type yaml">YAML</span><code>docker-compose.yml</code><p>Construye imágenes, enlaza la red y configura puertos.</p><span class="file-port">DOCKER</span></div>
+        </div>
+        <div class="api-reference"><div class="api-ref-title"><span class="panel-overline">API PÚBLICA · V1</span><span>Base URL <code>http://localhost:8080</code></span></div><div class="api-row"><span class="method get">GET</span><code>/api/v1/libraries?city=…&amp;page=1&amp;size=10</code><span>Buscar bibliotecas</span></div><div class="api-row"><span class="method get">GET</span><code>/api/v1/libraries/{id}/books</code><span>Ver libros disponibles</span></div><div class="api-row"><span class="method post">POST</span><code>/api/v1/reservations</code><span>Pedir un libro · X-User-Name</span></div><div class="api-row"><span class="method get">GET</span><code>/api/v1/reservations</code><span>Consultar mis préstamos</span></div><div class="api-row"><span class="method post">POST</span><code>/api/v1/reservations/{id}/return</code><span>Devolverlo · fecha + condición</span></div><div class="api-row"><span class="method get">GET</span><code>/api/v1/rating</code><span>Consultar estrellas</span></div></div>
+      </section>
+    </main>
+    <footer><span>LAB 02 <span class="footer-slash">/</span> SISTEMAS DISTRIBUIDOS</span><span>Una instancia PostgreSQL · Tres bases lógicas · Un Gateway</span><a href="#inicio">Volver arriba ↑</a></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
